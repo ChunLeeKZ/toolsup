@@ -16,7 +16,7 @@ Future<void> main() async {
   try {
     await dotenv.load(fileName: '.env');
   } catch (_) {
-    setupError = 'Файл .env не найден или не добавлен в assets.';
+    setupError = 'Файл .env не найден, возможно не добавлен в assets.';
   }
 
   if (SupabaseConfig.isConfigured) {
@@ -27,7 +27,7 @@ Future<void> main() async {
       );
       supabaseReady = true;
     } catch (error) {
-      setupError = error.toString();
+      setupError = error.toString(); 
     }
   }
 
