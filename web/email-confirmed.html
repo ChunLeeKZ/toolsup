@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToolsUp | Почта подтверждена</title>
+  <style>
+    :root {
+      --ink: #001524;
+      --panel: #062338;
+      --line: #2d607d;
+      --gold: #ffd21f;
+      --cyan: #61d9ff;
+      --text: #f7fbff;
+      --muted: #b8cad7;
+      --error: #ffdad6;
+      --error-text: #410002;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 72% 18%, rgba(97, 217, 255, 0.2), transparent 32%),
+        linear-gradient(145deg, #00111f 0%, var(--ink) 58%, #042b42 100%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(100%, 520px);
+      padding: 32px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(6, 35, 56, 0.88);
+      box-shadow: 0 22px 80px rgba(0, 0, 0, 0.38);
+      text-align: center;
+    }
+
+    .brand {
+      margin: 0 0 18px;
+      color: var(--gold);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .icon {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--gold);
+      color: var(--ink);
+      font-size: 38px;
+      font-weight: 900;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 8vw, 40px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .error main {
+      border-color: #ba1a1a;
+      background: rgba(65, 0, 2, 0.92);
+    }
+
+    .error .icon {
+      background: var(--error);
+      color: var(--error-text);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">ToolsUp</p>
+    <div class="icon" aria-hidden="true">✓</div>
+    <h1 id="title">Почта подтверждена</h1>
+    <p id="message">Теперь можно вернуться в приложение и войти в аккаунт.</p>
+  </main>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const error = params.get('error') || hash.get('error');
+    const errorDescription =
+      params.get('error_description') || hash.get('error_description');
+
+    if (error) {
+      document.body.classList.add('error');
+      document.querySelector('.icon').textContent = '!';
+      document.getElementById('title').textContent = 'Почта не подтверждена';
+      document.getElementById('message').textContent =
+        errorDescription || 'Ссылка устарела или уже была использована.';
+    }
+  </script>
+</body>
+</html>

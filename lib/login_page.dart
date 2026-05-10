@@ -3,12 +3,24 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app_theme.dart';
+import 'supabase_config.dart';
+
+final _emailHiddenCharacters = RegExp(r'[\s\u00A0\u200B-\u200D\uFEFF]+');
+final _emailPattern = RegExp(
+  r"^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9-]+(?:\.[A-Z0-9-]+)+$",
+  caseSensitive: false,
+);
+
+String normalizeEmail(String email) {
+  return email.replaceAll(_emailHiddenCharacters, '').toLowerCase();
+}
 
 String? emailError(String email) {
-  if (email.trim().isEmpty) {
+  final normalizedEmail = normalizeEmail(email);
+  if (normalizedEmail.isEmpty) {
     return 'Введите email';
   }
-  if (!email.contains('@')) {
+  if (!_emailPattern.hasMatch(normalizedEmail)) {
     return 'Введите корректный email';
   }
   return null;
@@ -74,9 +86,11 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final auth = Supabase.instance.client.auth;
-      final email = _emailController.text.trim();
+      final email = normalizeEmail(_emailController.text);
       final password = _passwordController.text;
       final iin = _iinController.text.trim();
+
+      _emailController.text = email;
 
       if (_isLogin) {
         await auth.signInWithPassword(email: email, password: password);
@@ -84,6 +98,7 @@ class _LoginPageState extends State<LoginPage> {
         final response = await auth.signUp(
           email: email,
           password: password,
+          emailRedirectTo: SupabaseConfig.emailRedirectUrl,
           data: {'iin': iin},
         );
 
@@ -112,6 +127,8 @@ class _LoginPageState extends State<LoginPage> {
       'user_already_exists' => 'Пользователь с таким email уже существует.',
       'weak_password' => 'Пароль слишком простой.',
       'signup_disabled' => 'Регистрация отключена в настройках Supabase.',
+      _ when error.message.toLowerCase().contains('invalid format') =>
+        'Email содержит недопустимый символ. Проверьте адрес и попробуйте снова.',
       _ => error.message,
     };
   }
@@ -162,7 +179,18 @@ class _LoginPageState extends State<LoginPage> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.none,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      smartDashesType: SmartDashesType.disabled,
+                      smartQuotesType: SmartQuotesType.disabled,
                       autofillHints: const [AutofillHints.email],
+                      inputFormatters: [
+                        FilteringTextInputFormatter.deny(
+                          _emailHiddenCharacters,
+                        ),
+                      ],
                       decoration: const InputDecoration(
                         labelText: 'Email',
                         prefixIcon: Icon(Icons.mail_outline),

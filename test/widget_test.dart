@@ -7,6 +7,14 @@ void main() {
       expect(emailError(''), 'Введите email');
       expect(emailError('wrong'), 'Введите корректный email');
       expect(emailError('user@example.com'), isNull);
+      expect(emailError(' user@example.com '), isNull);
+      expect(emailError('USER@EXAMPLE.COM'), isNull);
+      expect(emailError('user@example'), 'Введите корректный email');
+    });
+
+    test('normalizes hidden email characters', () {
+      expect(normalizeEmail(' USER@Example.COM '), 'user@example.com');
+      expect(normalizeEmail('user\u200B@example.com'), 'user@example.com');
     });
 
     test('validates password', () {

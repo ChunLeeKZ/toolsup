@@ -3,6 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class SupabaseConfig {
   static const _urlFromDefine = String.fromEnvironment('SUPABASE_URL');
   static const _anonKeyFromDefine = String.fromEnvironment('SUPABASE_ANON_KEY');
+  static const _emailRedirectUrlFromDefine = String.fromEnvironment(
+    'SUPABASE_EMAIL_REDIRECT_URL',
+  );
 
   static String get url {
     final rawUrl = _urlFromDefine.isNotEmpty
@@ -31,6 +34,14 @@ class SupabaseConfig {
       return _anonKeyFromDefine;
     }
     return dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+  }
+
+  static String? get emailRedirectUrl {
+    final rawUrl = _emailRedirectUrlFromDefine.isNotEmpty
+        ? _emailRedirectUrlFromDefine
+        : dotenv.env['SUPABASE_EMAIL_REDIRECT_URL'] ?? '';
+    final trimmed = rawUrl.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   static bool get isConfigured {
