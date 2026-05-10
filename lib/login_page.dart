@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'app_theme.dart';
+
 String? emailError(String email) {
   if (email.trim().isEmpty) {
     return 'Введите email';
@@ -131,10 +133,17 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(
-                      Icons.lock_person_rounded,
-                      size: 56,
-                      color: colors.primary,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: DecoratedBox(
+                        decoration: const BoxDecoration(
+                          color: ToolsupPalette.navyCard,
+                        ),
+                        child: Image.asset(
+                          'assets/images/toolsup_logo2.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -145,9 +154,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _isLogin
-                          ? 'Войдите через Supabase Auth.'
-                          : 'Создайте аккаунт по email и паролю.',
+                      _isLogin ? '' : 'Создайте аккаунт по email и паролю.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: colors.onSurfaceVariant),
                     ),
