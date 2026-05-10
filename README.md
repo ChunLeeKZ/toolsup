@@ -18,6 +18,18 @@ SUPABASE_ANON_KEY=your_anon_key
 You can also pass the same values from VS Code through `.vscode/launch.json`
 using `--dart-define`.
 
+### Inventory data
+
+Run `supabase/migrations/20260509_inventory_documents.sql` in Supabase SQL
+Editor. It creates these tables:
+
+- `inventory_documents` for document реквизиты.
+- `fixed_assets` for the основное средство reference.
+- `inventory_document_lines` for табличная часть and scanned availability.
+
+The Flutter app reads inventory documents from these tables and writes QR/barcode
+scan results back to `inventory_document_lines`.
+
 ## Run
 
 ```sh
@@ -30,3 +42,4 @@ For web:
 ```sh
 flutter run -d chrome
 ```
+# toolsup
