@@ -3,9 +3,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app_theme.dart';
+import 'document_workflow.dart';
 import 'inventory_documents.dart';
 import 'login_page.dart';
 import 'supabase_config.dart';
+import 'user_profile_page.dart';
+import 'user_profiles.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +30,7 @@ Future<void> main() async {
       );
       supabaseReady = true;
     } catch (error) {
-      setupError = error.toString(); 
+      setupError = error.toString();
     }
   }
 
@@ -83,19 +86,64 @@ class AuthGate extends StatelessWidget {
   }
 }
 
-class OperationSelectionPage extends StatelessWidget {
-  const OperationSelectionPage({required this.user, super.key});
+class OperationSelectionPage extends StatefulWidget {
+  const OperationSelectionPage({
+    required this.user,
+    this.profileRepository = const UserProfileRepository(),
+    super.key,
+  });
 
   final User user;
+  final UserProfileRepository profileRepository;
+
+  @override
+  State<OperationSelectionPage> createState() => _OperationSelectionPageState();
+}
+
+class _OperationSelectionPageState extends State<OperationSelectionPage> {
+  AppUserProfile? _profile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await widget.profileRepository.getCurrentProfile(
+        widget.user,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _profile = profile;
+      });
+    } catch (_) {
+      // The account summary should not block the main menu if the profile
+      // migration has not been applied yet.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final iin = user.userMetadata?['iin']?.toString();
+    final user = widget.user;
+    final iin = _profile?.iinText ?? user.userMetadata?['iin']?.toString();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Toolsup'),
         actions: [
+          IconButton(
+            tooltip: 'Профиль',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => UserProfilePage(user: user),
+              ),
+            ),
+            icon: const Icon(Icons.account_circle_outlined),
+          ),
           IconButton(
             tooltip: 'Выйти',
             onPressed: Supabase.instance.client.auth.signOut,
@@ -138,6 +186,16 @@ class OperationSelectionPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     _OperationChoice(
+                      icon: Icons.account_tree_outlined,
+                      title: 'Документооборот',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (context) => const DocumentWorkflowPage(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _OperationChoice(
                       icon: Icons.inventory_2_outlined,
                       title: 'Инвентаризации основных средств',
                       onTap: () => Navigator.of(context).push(
@@ -146,17 +204,12 @@ class OperationSelectionPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    _OperationChoice(
-                      icon: Icons.work_history_outlined,
-                      title: 'Командировки организации',
-                      onTap: () =>
-                          _openOperation(context, 'Командировки организации'),
-                    ),
                     const Divider(height: 32),
                     _AccountSummary(
                       email: user.email ?? 'Не указан',
                       iin: iin == null || iin.isEmpty ? 'Не указан' : iin,
+                      organizationBin: _profile?.organizationBinText,
+                      organizationName: _profile?.organizationNameText,
                     ),
                   ],
                 ),
@@ -164,14 +217,6 @@ class OperationSelectionPage extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _openOperation(BuildContext context, String title) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (context) => OperationPage(title: title),
       ),
     );
   }
@@ -231,10 +276,17 @@ class _OperationChoice extends StatelessWidget {
 }
 
 class _AccountSummary extends StatelessWidget {
-  const _AccountSummary({required this.email, required this.iin});
+  const _AccountSummary({
+    required this.email,
+    required this.iin,
+    this.organizationBin,
+    this.organizationName,
+  });
 
   final String email;
   final String iin;
+  final String? organizationBin;
+  final String? organizationName;
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +308,14 @@ class _AccountSummary extends StatelessWidget {
           children: [
             _AccountChip(icon: Icons.mail_outline, value: email),
             _AccountChip(icon: Icons.badge_outlined, value: 'ИИН: $iin'),
+            _AccountChip(
+              icon: Icons.business_outlined,
+              value: 'БИН: ${organizationBin ?? 'Не указан'}',
+            ),
+            _AccountChip(
+              icon: Icons.apartment_outlined,
+              value: 'Организация: ${organizationName ?? 'Не указана'}',
+            ),
           ],
         ),
       ],

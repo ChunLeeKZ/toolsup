@@ -10,12 +10,6 @@ Flutter project with Supabase email/password authentication.
 4. Copy Project URL and anon public key from Project Settings -> API.
 5. Put them into `.env`:
 
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_EMAIL_REDIRECT_URL=https://your-domain.com/email-confirmed.html
-```
-
 You can also pass the same values from VS Code through `.vscode/launch.json`
 using `--dart-define`.
 
@@ -43,16 +37,38 @@ Editor. It creates these tables:
 The Flutter app reads inventory documents from these tables and writes QR/barcode
 scan results back to `inventory_document_lines`.
 
-## Run
+### Document workflow data
 
-```sh
-flutter pub get
-flutter run
-```
+Run `supabase/migrations/20260518_document_workflow.sql` in Supabase SQL Editor.
+It creates these tables:
 
-For web:
+- `document_workflow_documents` for workflow document headers.
+- `document_workflow_route_steps` for business-process route steps.
 
-```sh
-flutter run -d chrome
-```
+Supported route actions are: согласование, подписание, рассмотрение,
+ознакомление.
+
+Run `supabase/migrations/20260519_app_user_profiles.sql` after the workflow
+tables. It creates `app_user_profiles`, fills profiles from Supabase Auth user
+metadata, and links workflow route executors to application users.
+
+Run `supabase/migrations/20260519_user_profile_photos.sql` after that. It adds
+profile photo fields and creates the private `user-profile-photos` Storage
+bucket.
+
+Run `supabase/migrations/20260519_organizations_and_user_org_fields.sql` after
+that. It creates the `organizations` directory with BIN, short name, and full
+name, then adds organization BIN and organization name fields to
+`app_user_profiles`.
+
+Run `supabase/migrations/20260519_link_profiles_to_organizations.sql` after
+that. It links `app_user_profiles.organization_bin` to `organizations.bin`, so
+the user profile organization is selected from the organization directory.
+
+Run `supabase/migrations/20260519_document_workflow_attachments.sql` after that.
+It creates:
+
+- `document_workflow_attachments` for attached file metadata.
+- `workflow-documents` Supabase Storage bucket for uploaded files.
+
 # toolsup

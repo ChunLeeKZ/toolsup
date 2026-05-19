@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app_theme.dart';
 import 'supabase_config.dart';
+import 'user_profiles.dart';
 
 final _emailHiddenCharacters = RegExp(r'[\s\u00A0\u200B-\u200D\uFEFF]+');
 final _emailPattern = RegExp(
@@ -93,14 +94,28 @@ class _LoginPageState extends State<LoginPage> {
       _emailController.text = email;
 
       if (_isLogin) {
-        await auth.signInWithPassword(email: email, password: password);
+        final response = await auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+        final user = response.user;
+        if (user != null) {
+          await syncCurrentUserProfile(Supabase.instance.client, user);
+        }
       } else {
         final response = await auth.signUp(
           email: email,
           password: password,
           emailRedirectTo: SupabaseConfig.emailRedirectUrl,
-          data: {'iin': iin},
+          data: {'iin': iin, 'display_name': email},
         );
+
+        if (response.session != null && response.user != null) {
+          await syncCurrentUserProfile(
+            Supabase.instance.client,
+            response.user!,
+          );
+        }
 
         if (response.session == null && mounted) {
           setState(() {
